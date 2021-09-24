@@ -112,8 +112,9 @@ function createNoteElements(todoList) {
   const deleteIcon = createElement("p", "fa fa-times");
   deleteButton.onclick = () => removeTodoList(todoList.id);
   const noteContainer = document.getElementById("notebook");
-  const button = document.getElementById("addNote");
-  const noteCard = createElement("div", "note card col-ms-6 col-md-4");
+  const button = document.getElementById("add-btn-div");
+  const noteDiv = createElement("div", "col-sm-12 col-md-6 col-lg-4");
+  const noteCard = createElement("div", "note  card mb-4");
   noteCard.id = todoList.id;
   const noteTitle = createElement("h1", "page-title card-title");
   noteTitle.innerHTML = todoList.title;
@@ -137,7 +138,8 @@ function createNoteElements(todoList) {
   form.appendChild(taskInputButton);
 
   noteCard.appendChild(form);
-  noteContainer.insertBefore(noteCard, button);
+  noteDiv.appendChild(noteCard);
+  noteContainer.insertBefore(noteDiv, button);
 }
 
 // utility functions
