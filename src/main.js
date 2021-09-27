@@ -19,7 +19,9 @@ class TaskList {
   }
   removeListItem(id) {
     this.todoItems.forEach((task, index) => {
-      if (task.id == id) this.todoItems.splice(index, 1);
+      if (task.id == id) {
+        this.todoItems.splice(index, 1);
+      }
     });
   }
   updateListItem(id, newTask) {
@@ -63,71 +65,95 @@ class TaskListManager {
     const stringified = JSON.stringify(toStringify);
     localStorage.setItem("todoList", stringified);
   }
-  renderAllTodos = () => this.todoLists.forEach(createTodoElements);
-  renderTodo = (newTodo) => createTodoElements(newTodo);
-  getTodo = (id) => this.todoLists.get(id);
-  deleteList = (id) => this.todoLists.delete(id);
+  renderAllTodos() {
+    this.todoLists.forEach(createNoteElements);
+  }
+  renderTodo(newTodo) {
+    createNoteElements(newTodo);
+  }
+  getTodo(id) {
+    return this.todoLists.get(id);
+  }
+  deleteList(id) {
+    this.todoLists.delete(id);
+  }
 }
 
 // testing only
 const newNotebook = new TaskListManager();
+const list = newNotebook.getTodo("list-1632414742511");
+// list.addListItem("Noddles");
+// list.addListItem("Tomatoes");
+// list.addListItem("Garlic");
+// newNotebook.storeTodo();
 
 newNotebook.renderAllTodos();
 
-// function interacting with DOM elelments.
-function createCheckList(eachTodo) {
-  // list items container
+function createCheckList(todo, listId) {
   const todolistItems = createElement("div", "task-list");
-  // checklist item
-  eachTodo.todoItems.forEach((task) => {
+  todo.forEach((task) => {
     const listItem = createElement("div", "task", task.id);
     const checkMarkButton = createElement("button", "task-checkmark");
-    checkMarkButton.onclick = () => removeFromCheckList(task.id, eachTodo.id);
+    checkMarkButton.onclick = () => removeFromCheckList(task.id, listId);
     const checkIcon = createElement("p", "fa fa-check");
     const listInput = createElement("p", "task-text");
     listInput.innerText = task.name;
-
-    nestElements(checkMarkButton, checkIcon);
-    // each check list-item
-    nestElements(listItem, checkMarkButton, listInput);
-    // list items into container
-    nestElements(todolistItems, listItem);
+    checkMarkButton.appendChild(checkIcon);
+    listItem.appendChild(checkMarkButton);
+    listItem.appendChild(listInput);
+    todolistItems.appendChild(listItem);
   });
   return todolistItems;
 }
-function createTodoElements(eachTodo) {
-  const noteContainer = document.getElementById("notebook");
+
+function createNoteElements(todoList) {
   // creating all the elements of todo list
   const deleteButton = createElement("button", "delete-btn");
   const deleteIcon = createElement("p", "fa fa-times");
+  deleteButton.onclick = () => removeTodoList(todoList.id);
+  const noteContainer = document.getElementById("notebook");
   const button = document.getElementById("add-btn-div");
-  const noteDiv = createElement(
-    "div",
-    "col-sm-12 col-md-6 col-lg-4",
-    eachTodo.id
-  );
+  const noteDiv = createElement("div", "col-sm-12 col-md-6 col-lg-4");
   const noteCard = createElement("div", "note  card mb-4");
+  noteCard.id = todoList.id;
   const noteTitle = createElement("h1", "page-title card-title");
+  noteTitle.innerHTML = todoList.title;
+  const noteList = createCheckList(todoList.todoItems, todoList.id);
+
+  // creating add item list button
   const form = createElement("form", "task-input");
+  form.onsubmit = () => addToCheckList(todoList.id);
   const taskInputText = createElement("input", "task-submit-text");
+  taskInputText.name = todoList.id;
   const taskInputButton = createElement("button", "task-submit-button");
   const buttonIcon = createElement("p", "fa fa-chevron-up");
-  // creating add item list button
-  const noteList = createCheckList(eachTodo);
 
-  deleteButton.onclick = () => removeTodoList(eachTodo.id);
-  noteTitle.innerText = eachTodo.title;
-  form.onsubmit = () => addToCheckList(eachTodo.id);
-  taskInputText.name = eachTodo.id;
-  deleteButton.appendChild(deleteIcon);
-  // appending to appropriate elements
-  nestElements(taskInputButton, buttonIcon);
-  nestElements(form, taskInputText, taskInputButton);
-  nestElements(noteCard, deleteButton, noteTitle, noteList, form);
-  nestElements(noteDiv, noteCard);
   // adding elements to screen
+  deleteButton.appendChild(deleteIcon);
+  noteCard.appendChild(deleteButton);
+  noteCard.appendChild(noteTitle);
+  noteCard.appendChild(noteList);
+  taskInputButton.appendChild(buttonIcon);
+  form.appendChild(taskInputText);
+  form.appendChild(taskInputButton);
+
+  noteCard.appendChild(form);
+  noteDiv.appendChild(noteCard);
   noteContainer.insertBefore(noteDiv, button);
 }
+
+// utility functions
+function newTaskObj(task, newTask) {
+  return { name: newTask, id: task.id };
+}
+function createElement(eName, className, id) {
+  id = id || "";
+  const element = document.createElement(eName);
+  element.className = className;
+  element.id = id;
+  return element;
+}
+
 function addToCheckList(id) {
   const inputText = document.getElementsByName(id)[0].value;
   const list = newNotebook.getTodo(id);
@@ -135,6 +161,7 @@ function addToCheckList(id) {
   list.addListItem(inputText);
   newNotebook.storeTodo();
 }
+
 function removeFromCheckList(id, listId) {
   const todoItem = document.getElementById(id);
   console.log(listId);
@@ -156,27 +183,4 @@ function removeTodoList(id) {
   const todoList = document.getElementById(id);
   todoList.parentElement.removeChild(todoList);
   newNotebook.storeTodo();
-}
-
-// utility functions
-function nestElements(...elements) {
-  const nested = elements.reduce((a, b) => {
-    a.appendChild(b);
-    return a;
-  });
-}
-function newTaskObj(task, newTask) {
-  return { name: newTask, id: task.id };
-}
-function createElement(eName, className, id) {
-  const element = document.createElement(eName);
-  element.className = className;
-  if (id) element.id = id;
-  return element;
-}
-// Adding animat5ion using css class
-function scrollAnim() {
-  const heading = document.getElementById("heading");
-  if (window.scrollY != 0) heading.className = "heading-scroll";
-  heading.className = "";
 }
